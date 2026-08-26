@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- =========================================================
+         FORMATO DE PAPEL - TICKET 80 MM
+    ========================================================== -->
+    <record id="paperformat_pos_cash_move_ticket" model="report.paperformat">
+        <field name="name">Ticket Movimiento Caja 80mm</field>
+        <field name="default" eval="False"/>
+        <field name="format">custom</field>
+        <field name="page_width">80</field>
+        <field name="page_height">110</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">3</field>
+        <field name="margin_bottom">3</field>
+        <field name="margin_left">4</field>
+        <field name="margin_right">4</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">96</field>
+    </record>
+
+
+    <!-- =========================================================
+         ACCIÓN DEL REPORTE
+    ========================================================== -->
+    <record id="action_report_pos_cash_move_ticket" model="ir.actions.report">
+        <field name="name">Ticket de Ingreso / Salida</field>
+        <field name="model">pos.cash.move</field>
+        <field name="report_type">qweb-html</field>
+
+        <field name="report_name">pos_cash_flow.report_pos_cash_move_ticket</field>
+        <field name="report_file">pos_cash_flow.report_pos_cash_move_ticket</field>
+
+        <field name="paperformat_id"
+               ref="pos_cash_flow.paperformat_pos_cash_move_ticket"/>
+
+        <field name="print_report_name">
+            'Ticket - %s' % (object.name)
+        </field>
+    </record>
+
+
+    <!-- =========================================================
+         PLANTILLA
+    ========================================================== -->
+    <template id="report_pos_cash_move_ticket">
+
+        <t t-call="web.html_container">
+
+            <t t-foreach="docs" t-as="move">
+
+                <!-- ================= CLIENTE ================= -->
+                <div class="page"
+                     style="font-family: Arial, sans-serif;
+                            font-size: 11px;
+                            width: 72mm;">
+
+                    <div style="text-align:center; font-weight:bold;">
+                        COMPROBANTE DE CAJA
+                    </div>
+
+                    <div style="text-align:center; margin-top:5px;">
+                        <strong>
+                            <t t-esc="move.name"/>
+                        </strong>
+                    </div>
+
+                    <div style="border-top:1px dashed #000;
+                                margin:5px 0;">
+                    </div>
+
+                    <div>
+                        <strong>Fecha:</strong>
+                        <t t-esc="context_timestamp(move.create_date).strftime('%d/%m/%Y %H:%M')"/>
+                    </div>
+
+                    <div>
+                        <strong>Caja:</strong>
+                        <t t-esc="move.config_id.name"/>
+                    </div>
+
+                    <div>
+                        <strong>Vendedor:</strong>
+                        <t t-esc="move.user_id.name or ''"/>
+                    </div>
+
+                    <div>
+                        <strong>Medio:</strong>
+                        <t t-esc="move.payment_method_id.name or ''"/>
+                    </div>
+
+                    <div style="margin-top:7px;
+                                font-size:16px;
+                                text-align:center;">
+                        <strong>
+                            MONTO: S/
+                            <t t-esc="'%.2f' % move.amount"/>
+                        </strong>
+                    </div>
+
+                    <div style="margin-top:7px;">
+                        <strong>Motivo:</strong>
+                    </div>
+
+                    <div>
+                        <t t-esc="move.reason"/>
+                    </div>
+
+                </div>
+
+            </t>
+
+        </t>
+
+    </template>
+
+</odoo>

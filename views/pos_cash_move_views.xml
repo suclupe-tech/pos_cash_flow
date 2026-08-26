@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Vista Tabla / Lista del Historial -->
+    <record id="view_pos_cash_move_list" model="ir.ui.view">
+        <field name="name">pos.cash.move.list</field>
+        <field name="model">pos.cash.move</field>
+        <field name="arch" type="xml">
+            <list string="Historial de Movimientos de Caja"
+                    decoration-muted="state == 'cancel'"
+                    decoration-success="move_type == 'in' and state != 'cancel'"
+                    decoration-info="move_type == 'out' and state != 'cancel'">
+                <field name="create_date" string="Fecha y Hora"/>
+                <field name="name"/>
+                <field name="config_id"/>
+                <field name="user_id"/>
+                <field name="move_type"/>
+                <field name="payment_method_id" string="Método de Pago"/>
+                <field name="affects_cash" string="Afecta Caja"/>
+                <field name="amount"/>
+                <field name="reason"/>
+                <field name="state" widget="badge" 
+                       decoration-danger="state == 'cancel'" 
+                       decoration-success="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vista Formulario Integrado (Anulación In-Situ) -->
+    <record id="view_pos_cash_move_form" model="ir.ui.view">
+        <field name="name">pos.cash.move.form</field>
+        <field name="model">pos.cash.move</field>
+        <field name="arch" type="xml">
+            <form string="Detalle de Movimiento de Caja">
+                <header>
+                    <!-- SESIÓN ABIERTA: permite anular -->
+
+                    <button name="action_print_ticket"
+                            string="Reimprimir Ticket"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state not in ['done', 'reversed']"/>
+
+                    <button name="action_cancel_move_in_place"
+                            string="Anular Movimiento"
+                            type="object"
+                            class="btn-danger"
+                            invisible="state != 'done' or session_id.state == 'closed'"/>
+
+                    <!-- SESIÓN CERRADA: permite corrección histórica -->
+                    <button name="action_create_historical_reversal"
+                            string="Corregir Movimiento"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="state != 'done' or session_id.state != 'closed'"/>
+
+                    <field name="state"
+                        widget="statusbar"
+                        statusbar_visible="done,cancel,reversed"/>
+
+                </header>
+                <sheet>
+                    <field name="session_state" invisible="1"/>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="session_id"/>
+                            <field name="config_id"/>
+                            <field name="user_id"/>
+                            <field name="create_date"/>
+                        </group>
+                        <group>
+                            <field name="move_type"/>
+                            <field name="payment_method_type"/>
+                            <field name="is_digital"/>
+                            <field name="amount"/>
+                        </group>
+                    </group>
+                    <group string="Motivo / Concepto del Movimiento">
+                        <field name="reason" nolabel="1" readonly="1"/>
+                    </group>
+                    
+                    <group string="Anulación"
+                        invisible="state != 'done' or session_state == 'closed'">
+
+                        <field name="cancel_reason"
+                            placeholder="Escriba el motivo de la anulación..."/>
+                    </group>
+
+                    <group string="Corrección Histórica"
+                        invisible="state != 'done' or session_state != 'closed'">
+
+                        <field name="correction_reason"
+                            placeholder="Escriba el motivo de la corrección..."/>
+                    </group>
+                    
+                    <group string="Datos de Anulación"
+                        invisible="state != 'cancel'">
+
+                        <field name="cancel_user_id"/>
+                        <field name="cancel_reason" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción para abrir la vista -->
+    <record id="action_pos_cash_move" model="ir.actions.act_window">
+        <field name="name">Ingresos y Salidas de Caja</field>
+        <field name="res_model">pos.cash.move</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Menú alojado en el menú principal de Punto de Venta en Odoo 19 -->
+    <menuitem id="menu_pos_cash_move_root"
+              name="Ingresos y Salidas POS"
+              parent="point_of_sale.menu_point_of_sale"
+              action="action_pos_cash_move"
+              sequence="25"/>
+
+</odoo>

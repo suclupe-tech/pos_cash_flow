@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="point_of_sale.CashMoveReceipt">
+        <div class="pos-receipt">
+            <div class="pos-receipt-header">
+                <h2>Comprobante de Caja</h2>
+            </div>
+            <div class="pos-receipt-body">
+                <div>Tipo: <t t-esc="props.translatedType"/></div>
+                <div>Monto: <t t-esc="props.formattedAmount"/></div>
+                <div>Motivo: <t t-esc="props.reason"/></div>
+                <div>Fecha: <t t-esc="props.date"/></div>
+            </div>
+        </div>
+    </t>
+
+</templates>

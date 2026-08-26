@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="pos_cash_flow.CashMovePopup" t-inherit="point_of_sale.CashMovePopup" t-inherit-mode="extension">
+        
+        <!-- Insertar selector de Método de Pago antes del importe -->
+        <xpath expr="//div[hasclass('input-amount')]" position="before">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Método de Pago</label>
+                <select class="form-select form-select-lg" t-model="state.payment_method_id">
+                    <t t-foreach="paymentMethods" t-as="method" t-key="method.id">
+                        <option t-att-value="method.id">
+                            <t t-esc="method.name"/>
+                        </option>
+                    </t>
+                </select>
+            </div>
+        </xpath>
+
+        <!-- Traducción de Botones Entrada / Salida -->
+        <xpath expr="//div[hasclass('input-group')]" position="replace">
+            <div class="input-group" t-att-class="{ 'w-50' : this.ui.isSmall }">
+                <button t-on-click="() => this.onClickButton('in')" 
+                        t-attf-class="input-type btn lh-lg #{this.ui.isSmall ? 'btn-md' : 'btn-lg'} #{state.type === 'in' ? 'highlight btn-success' : 'btn-secondary' }">
+                    Entrada
+                </button>
+                <button t-on-click="() => this.onClickButton('out')" 
+                        t-attf-class="input-type btn lh-lg #{this.ui.isSmall ? 'btn-md' : 'btn-lg'} #{state.type === 'out' ? 'red-highlight btn-danger' : 'btn-secondary' }">
+                    Salida
+                </button>
+            </div>
+        </xpath>
+
+        <!-- Modificación de campos de texto -->
+        <xpath expr="//label[@for='reason']" position="replace">
+            <label for="reason">Motivo / Concepto</label>
+        </xpath>
+
+        <xpath expr="//textarea[@id='reason']" position="attributes">
+            <attribute name="placeholder">Escriba el motivo del movimiento...</attribute>
+        </xpath>
+
+    </t>
+
+</templates>
