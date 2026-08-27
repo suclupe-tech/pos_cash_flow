@@ -2,7 +2,6 @@
 
 import { patch } from "@web/core/utils/patch";
 import { CashMovePopup } from "@point_of_sale/app/components/popups/cash_move_popup/cash_move_popup";
-import { CashMoveReceipt } from "@point_of_sale/app/components/popups/cash_move_popup/cash_move_receipt/cash_move_receipt";
 import { _t } from "@web/core/l10n/translation";
 
 patch(CashMovePopup.prototype, {
@@ -87,28 +86,9 @@ patch(CashMovePopup.prototype, {
             {}
         );
 
-        // 2. Creación del objeto temporal de orden para mandar a imprimir
-        const order = this.pos.models["pos.order"].create({
-            session_id: this.pos.session,
-            company_id: this.pos.company,
-            config_id: this.pos.config,
-            user_id: this.pos.user,
-            ticket_code: "",
-            tracking_number: "",
-            sequence_number: 0,
-            pos_reference: "",
-        });
-
-        // 3. Emisión e Impresión del ticket
-        await this.printer.print(CashMoveReceipt, {
-            reason: reason,
-            translatedType: translatedType,
-            order: order,
-            formattedAmount: formattedAmount,
-            date: new Date().toLocaleString(),
-        });
-
-        this.pos.models["pos.order"].delete(order);
+        // Abrir el ticket real generado en backend
+        const ticketUrl = `/pos_cash_flow/ticket/${cashMove.id}`;
+        window.open(ticketUrl, "_blank");
 
         this.props.close();
         this.notification.add(

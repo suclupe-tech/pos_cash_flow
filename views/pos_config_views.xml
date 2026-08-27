@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_pos_config_form_cash_flow_series" model="ir.ui.view">
+        <field name="name">pos.config.form.cash.flow.series</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+
+        <field name="arch" type="xml">
+
+            <xpath expr="//div[@id='title']" position="after">
+
+                <group string="Movimientos de Caja">
+                    <field name="cash_flow_series"
+                           string="Serie Movimientos de Caja"
+                           placeholder="Ej. HUA, GAM, MON"/>
+                </group>
+
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

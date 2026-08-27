@@ -10,6 +10,8 @@
         "views/pos_cash_move_views.xml",
         "report/pos_cash_move_ticket.xml",
         "security/ir.model.access.csv",
+        "views/pos_config_views.xml",
+        "wizard/cancel_move_wizard_views.xml",
     ],
     "assets": {
         "point_of_sale._assets_pos": [

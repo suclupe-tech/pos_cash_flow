@@ -134,12 +134,30 @@ class PosCashMove(models.Model):
     def create(self, vals_list):
         for vals in vals_list:
             if vals.get("name", "/") == "/":
+
+                session = self.env["pos.session"].browse(vals.get("session_id"))
+
+                if not session.exists():
+                    raise UserError(
+                        _("No se encontró la sesión POS para generar el correlativo.")
+                    )
+
+                config = session.config_id
+
+                sequence = config._get_cash_flow_sequence()
+
+                correlativo = sequence.sudo().next_by_id()
+
+                serie = (config.cash_flow_series or "").strip().upper()
+
                 prefix = "ING" if vals.get("move_type") == "in" else "SAL"
-                sequence = (
-                    self.env["ir.sequence"].next_by_code("pos.cash.move.sequence")
-                    or "000001"
+
+                vals["name"] = "%s-%s-%s" % (
+                    prefix,
+                    serie,
+                    correlativo,
                 )
-                vals["name"] = f"{prefix}-{sequence}"
+
         return super().create(vals_list)
 
     @api.depends("payment_method_id")
@@ -156,6 +174,28 @@ class PosCashMove(models.Model):
             "type": "ir.actions.act_url",
             "url": f"/pos_cash_flow/ticket/{self.id}",
             "target": "new",
+        }
+
+    def action_open_cancel_wizard(self):
+        self.ensure_one()
+
+        if self.state == "cancel":
+            raise UserError(_("Este movimiento ya se encuentra anulado."))
+
+        if self.session_id.state == "closed":
+            raise UserError(
+                _("La sesión POS ya está cerrada. " "Utilice la reversión histórica.")
+            )
+
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Anular Movimiento"),
+            "res_model": "pos.cash.move.cancel.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_move_id": self.id,
+            },
         }
 
     def action_cancel_move_in_place(self):

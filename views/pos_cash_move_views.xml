@@ -41,7 +41,7 @@
                             class="btn-primary"
                             invisible="state not in ['done', 'reversed']"/>
 
-                    <button name="action_cancel_move_in_place"
+                    <button name="action_open_cancel_wizard"
                             string="Anular Movimiento"
                             type="object"
                             class="btn-danger"
