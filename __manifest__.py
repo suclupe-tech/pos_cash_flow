@@ -4,7 +4,7 @@
     "summary": "Control de ingresos, salidas, medios de pago (Efectivo/Yape/Transferencia) y vouchers térmicos",
     "category": "Point of Sale",
     "author": "Detalles Textiles S.A.C.",
-    "depends": ["base", "point_of_sale", "account"],
+    "depends": ["base", "point_of_sale", "account", "pos_hr"],
     "data": [
         "data/sequence_data.xml",
         "views/pos_cash_move_views.xml",

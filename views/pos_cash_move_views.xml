@@ -15,13 +15,16 @@
                 <field name="config_id"/>
                 <field name="user_id"/>
                 <field name="move_type"/>
+                <field name="employee_id"
+                    string="Vendedora / Cajera"
+                    optional="show"/>
                 <field name="payment_method_id" string="Método de Pago"/>
                 <field name="affects_cash" string="Afecta Caja"/>
                 <field name="amount"/>
                 <field name="reason"/>
-                <field name="state" widget="badge" 
-                       decoration-danger="state == 'cancel'" 
-                       decoration-success="state == 'done'"/>
+                <field name="state" widget="badge"
+                    decoration-danger="state == 'cancel'"
+                    decoration-success="state == 'done'"/>
             </list>
         </field>
     </record>
@@ -73,7 +76,7 @@
                         </group>
                         <group>
                             <field name="move_type"/>
-                            <field name="payment_method_type"/>
+                            <field name="payment_method_id" string="Método de Pago"/>
                             <field name="is_digital"/>
                             <field name="amount"/>
                         </group>
@@ -81,7 +84,7 @@
                     <group string="Motivo / Concepto del Movimiento">
                         <field name="reason" nolabel="1" readonly="1"/>
                     </group>
-                    
+
                     <group string="Anulación"
                         invisible="state != 'done' or session_state == 'closed'">
 
@@ -95,7 +98,7 @@
                         <field name="correction_reason"
                             placeholder="Escriba el motivo de la corrección..."/>
                     </group>
-                    
+
                     <group string="Datos de Anulación"
                         invisible="state != 'cancel'">
 
@@ -107,11 +110,80 @@
         </field>
     </record>
 
+    <!-- ============================================================
+        BUSQUEDA Y FILTROS DE INGRESOS / SALIDAS
+        ============================================================ -->
+    <record id="view_pos_cash_move_search" model="ir.ui.view">
+        <field name="name">pos.cash.move.search</field>
+        <field name="model">pos.cash.move</field>
+        <field name="arch" type="xml">
+            <search>
+
+                <!-- CAMPOS DE BUSQUEDA -->
+                <field name="name" string="Nro. Ticket"/>
+                <field name="config_id" string="Punto de Venta"/>
+                <field name="payment_method_id" string="Método de Pago"/>
+                <field name="user_id" string="Usuario"/>
+                <field name="employee_id" string="Vendedora / Cajera"/>
+                <field name="reason" string="Motivo / Concepto"/>
+
+                <separator/>
+
+                <!-- TIPO DE MOVIMIENTO -->
+                <filter name="filter_in" string="Entradas" domain="[('move_type','=','in')]"/>
+                <filter name="filter_out" string="Salidas" domain="[('move_type','=','out')]"/>
+
+                <separator/>
+
+                <!-- ESTADO -->
+                <filter name="filter_done" string="Realizados" domain="[('state','=','done')]"/>
+                <filter name="filter_cancel" string="Anulados" domain="[('state','=','cancel')]"/>
+                <filter name="filter_reversed" string="Revertidos" domain="[('state','=','reversed')]"/>
+
+                <separator/>
+
+                <!-- CAJA FISICA -->
+                <filter name="filter_affects_cash" string="Afecta caja" domain="[('affects_cash','=',True)]"/>
+                <filter name="filter_no_cash" string="No afecta caja" domain="[('affects_cash','=',False)]"/>
+
+                <separator/>
+
+                <!-- REGISTROS DIGITALES -->
+                <filter name="filter_digital" string="Digitales" domain="[('is_digital','=',True)]"/>
+
+                <separator/>
+
+                <!-- CORRECCIONES -->
+                <filter name="filter_normal" string="Movimientos normales" domain="[('correction_type','=','normal')]"/>
+                <filter name="filter_reversal" string="Reversiones" domain="[('correction_type','=','reversal')]"/>
+                <filter name="filter_adjustment" string="Ajustes históricos" domain="[('correction_type','=','adjustment')]"/>
+
+                <separator/>
+
+                <!-- FECHA ESTANDAR DE ODOO -->
+                <filter name="filter_create_date" string="Fecha" date="create_date"/>
+
+                <!-- AGRUPACIONES -->
+                <group>
+                    <filter name="group_config" string="Punto de Venta" context="{'group_by':'config_id'}"/>
+                    <filter name="group_move_type" string="Tipo de Movimiento" context="{'group_by':'move_type'}"/>
+                    <filter name="group_payment_method" string="Método de Pago" context="{'group_by':'payment_method_id'}"/>
+                    <filter name="group_state" string="Estado" context="{'group_by':'state'}"/>
+                    <filter name="group_user" string="Usuario" context="{'group_by':'user_id'}"/>
+                    <filter name="group_employee" string="Vendedora / Cajera" context="{'group_by':'employee_id'}"/>
+                    <filter name="group_create_date" string="Fecha" context="{'group_by':'create_date'}"/>
+                </group>
+
+            </search>
+        </field>
+    </record>
+
     <!-- Acción para abrir la vista -->
     <record id="action_pos_cash_move" model="ir.actions.act_window">
         <field name="name">Ingresos y Salidas de Caja</field>
         <field name="res_model">pos.cash.move</field>
         <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_pos_cash_move_search"/>
     </record>
 
     <!-- Menú alojado en el menú principal de Punto de Venta en Odoo 19 -->

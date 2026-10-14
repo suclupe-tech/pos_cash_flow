@@ -29,6 +29,15 @@ class PosCashMove(models.Model):
         "res.users", string="Cajero", default=lambda self: self.env.user, readonly=True
     )
 
+    # Vendedora / cajera identificada mediante PIN en el POS
+    employee_id = fields.Many2one(
+        "hr.employee",
+        string="Vendedora / Cajera",
+        readonly=True,
+        copy=False,
+        ondelete="restrict",
+    )
+
     move_type = fields.Selection(
         [("in", "Entrada de Dinero"), ("out", "Salida de Dinero")],
         string="Tipo de Movimiento",
@@ -125,10 +134,14 @@ class PosCashMove(models.Model):
     cancel_reason = fields.Text(string="Motivo de Anulación")
     cancel_user_id = fields.Many2one("res.users", string="Anulado Por", readonly=True)
 
-    @api.depends("payment_method_type")
+    @api.depends("payment_method_id", "payment_method_type")
     def _compute_is_digital(self):
         for rec in self:
-            rec.is_digital = rec.payment_method_type in ["yape", "transfer"]
+            if rec.payment_method_id:
+                rec.is_digital = not rec.payment_method_id.is_cash_count
+            else:
+                # Compatibilidad con movimientos antiguos.
+                rec.is_digital = rec.payment_method_type in ["yape", "transfer"]
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -341,14 +354,47 @@ class PosCashMove(models.Model):
         if not payment_method.exists():
             raise UserError(_("El método de pago no existe."))
 
+        # Guardamos también la vendedora/cajera que actualmente
+        # está identificada mediante PIN en la sesión POS.
+        cashier = session.employee_id
+
+        payment_method_type = "cash"
+
+        if payment_method.is_cash_count:
+            payment_method_type = "cash"
+        elif payment_method.name and payment_method.name.strip().lower() == "yape":
+            payment_method_type = "yape"
+        else:
+            payment_method_type = "transfer"
+
+        # --------------------------------------------------------
+        # SINCRONIZAR CON LA CAJA ESTANDAR DE ODOO
+        # --------------------------------------------------------
+        # Solo los movimientos realizados en un método que realmente
+        # representa efectivo deben afectar el saldo físico estándar.
+        if payment_method.is_cash_count:
+            extras = {
+                "translatedType": "ENTRADA" if move_type == "in" else "SALIDA",
+            }
+
+            session.try_cash_in_out(
+                move_type,
+                amount,
+                reason,
+                False,
+                extras,
+            )
+
         move = self.create(
             {
                 "session_id": session.id,
                 "move_type": move_type,
                 "payment_method_id": payment_method.id,
+                "payment_method_type": payment_method_type,
                 "amount": amount,
                 "reason": reason,
                 "affects_balance": True,
+                "employee_id": cashier.id if cashier else False,
             }
         )
 

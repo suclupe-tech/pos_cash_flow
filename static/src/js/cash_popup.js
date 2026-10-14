@@ -56,23 +56,6 @@ patch(CashMovePopup.prototype, {
         };
         const reason = `${this.state.reason.trim()} [Pago: ${paymentMethodLabel}]`;
 
-        // 1. Registro del movimiento en la sesión POS
-        if (paymentMethod.is_cash_count) {
-            await this.pos.data.call(
-                "pos.session",
-                "try_cash_in_out",
-                this._prepareTryCashInOutPayload(
-                    type,
-                    amount,
-                    reason,
-                    this.partnerId,
-                    extras
-                ),
-                {},
-                true
-            );
-        }
-
         const cashMove = await this.pos.data.call(
             "pos.cash.move",
             "create_from_pos",

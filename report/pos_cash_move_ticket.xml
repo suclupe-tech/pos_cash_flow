@@ -82,7 +82,7 @@
 
                     <div>
                         <strong>Vendedor:</strong>
-                        <t t-esc="move.user_id.name or ''"/>
+                        <span t-esc="o.employee_id.name if o.employee_id else o.user_id.name"/>
                     </div>
 
                     <div>
