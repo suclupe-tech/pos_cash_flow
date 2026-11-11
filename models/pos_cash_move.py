@@ -234,7 +234,7 @@ class PosCashMove(models.Model):
                     "translatedType": "ENTRADA" if reversal_type == "in" else "SALIDA",
                 }
 
-                rec.session_id.try_cash_in_out(
+                rec.session_id.with_context({k: v for k, v in self.env.context.items() if not k.startswith("default_")}).try_cash_in_out(
                     reversal_type,
                     reversal_amount,
                     reversal_reason,
