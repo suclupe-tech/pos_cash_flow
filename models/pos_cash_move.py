@@ -362,7 +362,9 @@ class PosCashMove(models.Model):
 
         if payment_method.is_cash_count:
             payment_method_type = "cash"
-        elif payment_method.name and payment_method.name.strip().lower() == "yape":
+        # Antes se exigía que el nombre fuera exactamente "yape": un método
+        # llamado "Yape Número" quedaba clasificado como transferencia.
+        elif payment_method.name and "yape" in payment_method.name.lower():
             payment_method_type = "yape"
         else:
             payment_method_type = "transfer"
